@@ -1,116 +1,121 @@
-openapi: 3.0.0
+openapi: 3.0.3
 info:
-  title: Rick and Morty Character API
+  title: API de Gestión de Tareas
+  description: API simple para gestionar una lista de tareas pendientes
   version: 1.0.0
-  description: Una pequeña porción de la API de Rick y Morty para obtener información de personajes.
 servers:
-  - url: https://rickandmortyapi.com/api
-    description: Servidor principal de la API de Rick and Morty
+  - url: http://localhost:3000/api/v1
+    description: Servidor local de desarrollo
 paths:
-  /character/{id}:
+  /tareas:
     get:
-      summary: Obtener un personaje por ID
-      description: Recupera los detalles de un personaje específico de Rick y Morty usando su ID.
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: integer
-            format: int64
-          required: true
-          description: ID del personaje a recuperar.
+      summary: Listar todas las tareas
+      description: Obtiene un array con todas las tareas del usuario
       responses:
         '200':
-          description: Detalles del personaje.
+          description: Lista de tareas
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Character'
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tarea'
+    post:
+      summary: Crear una nueva tarea
+      description: Añade una tarea a la lista
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TareaInput'
+      responses:
+        '201':
+          description: Tarea creada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tarea'
+        '400':
+          description: Datos inválidos (título vacío, etc.)
+  /tareas/{id}:
+    patch:
+      summary: Actualizar estado de una tarea
+      description: Marca una tarea como completada o pendiente
+      parameters:
+        - name: tareaId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                completada:
+                  type: boolean
+      responses:
+        '200':
+          description: Tarea actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tarea'
         '404':
-          description: Personaje no encontrado.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: Character not found
-        '500':
-          description: Error interno del servidor.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: Internal server error
+          description: Tarea no encontrada
+    delete:
+      summary: Eliminar una tarea
+      description: Elimina permanentemente una tarea de la lista
+      parameters:
+        - name: tareaId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Tarea eliminada exitosamente
+        '404':
+          description: Tarea no encontrada
+
 components:
   schemas:
-    Character:
+    Tarea:
       type: object
+      required:
+        - id
+        - titulo
+        - completada
       properties:
         id:
           type: integer
-          description: El ID del personaje.
           example: 1
-        name:
+        titulo:
           type: string
-          description: El nombre del personaje.
-          example: Rick Sanchez
-        status:
+          minLength: 1
+          maxLength: 200
+          example: "Comprar leche"
+        descripcion:
           type: string
-          description: El estado de vida del personaje (Alive, Dead, unknown).
-          example: Alive
-        species:
-          type: string
-          description: La especie del personaje.
-          example: Human
-        type:
-          type: string
-          description: El tipo o subtipo del personaje.
-          example: Genetic experiment
-        gender:
-          type: string
-          description: El género del personaje (Female, Male, Genderless, unknown).
-          example: Male
-        origin:
-          type: object
-          properties:
-            name:
-              type: string
-              example: Earth (C-137)
-            url:
-              type: string
-              format: url
-              example: https://rickandmortyapi.com/api/location/1
-        location:
-          type: object
-          properties:
-            name:
-              type: string
-              example: Earth (Replacement Dimension)
-            url:
-              type: string
-              format: url
-              example: https://rickandmortyapi.com/api/location/20
-        image:
-          type: string
-          format: url
-          description: Enlace a la imagen del personaje.
-          example: https://rickandmortyapi.com/api/character/avatar/1.jpeg
-        episode:
-          type: array
-          items:
-            type: string
-            format: url
-          description: Lista de enlaces a los episodios donde ha aparecido el personaje.
-        url:
-          type: string
-          format: url
-          description: Enlace al detalle del personaje.
-        created:
+          example: "Comprar leche desnatada en el supermercado"
+        completada:
+          type: boolean
+          example: false
+        fechaCreacion:
           type: string
           format: date-time
-          description: Fecha de creación del personaje en la base de datos.
+          example: "2026-02-12T10:30:00Z"
+    TareaInput:
+      type: object
+      required:
+        - titulo
+      properties:
+        titulo:
+          type: string
+          minLength: 1
+          maxLength: 200
+        descripcion:
+          type: string
